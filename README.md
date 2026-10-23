@@ -1,5 +1,7 @@
 # StackChan voice
 
+[![CI](https://github.com/botamochi6277/stackchan-voice/actions/workflows/ci.yml/badge.svg)](https://github.com/botamochi6277/stackchan-voice/actions/workflows/ci.yml)
+
 *stackchan-voice* is a Arduino library to enable StackChan to tweet.
 This library is for [StackChan Core](https://docs.m5stack.com/ja/core/StackChan_Core)
 
@@ -11,7 +13,7 @@ target voice: R2D2 voice, LOVOT voice, etc.
 
 ## Installment
 
-you can install with pioarduino.
+You can install this library with pioarduino.
 
 Add this repository and the [pioarduino](https://github.com/pioarduino/platform-espressif32) platform (Arduino-ESP32 3.x / ESP-IDF 5.x) to the `platformio.ini` of your project:
 
@@ -96,7 +98,7 @@ n = presets::puppyWhine(notes, presets::kMaxRobotNotes);   // puppy-like whine
 The presets only fill `VoiceNote`s. Change their fields before playing to tune the voice, or make your own notes:
 
 | field | what it does | try |
-|---|---|---|
+| --- | --- | --- |
 | `f_start`, `f_end` | pitch glides from `f_start` to `f_end` [Hz] (straight in musical pitch) | up = a question or a happy sound, down = a sad or tired sound |
 | `f_peak`, `peak_position` | pitch goes through a peak at `peak_position` (0 to 1) | a meow rises fast and falls slowly (peak at 0.2 to 0.3) |
 | `duration_ms`, `gap_ms` | length of the sound, and the silence after it | short (40 to 150 ms) is a chirp, long (500 ms or more) is a cry |
@@ -114,7 +116,7 @@ The presets only fill `VoiceNote`s. Change their fields before playing to tune t
 
 ### Voices for the emotions
 
-`emotionVoice()` makes the voice of a character for an emotion. The emotions are the same as the emotional expressions of [stackchan-display](../stackchan-display) (`Expression::kNeutral` to `kRelax`), so a face and its voice can be changed together.
+`emotionVoice()` makes the voice of a character for an emotion. The emotions are the same as the emotional expressions of [stackchan-display](https://github.com/botamochi6277/stackchan-display) (`Expression::kNeutral` to `kRelax`), so a face and its voice can be changed together.
 
 ```cpp
 using namespace stackchan::voice;
@@ -127,7 +129,7 @@ voice.playPhrase(notes, n);
 The characters (`Character`):
 
 | character | the sound |
-|---|---|
+| --- | --- |
 | `kRobot` | electronic chirps, trills and blips, a little metallic (high, 600 to 3000 Hz) |
 | `kCat` | meows: the pitch goes up to a peak and comes down |
 | `kDog` | barks, growls and whines |
@@ -138,7 +140,7 @@ The characters (`Character`):
 The voice of each emotion:
 
 | emotion | robot | cat | dog |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `kNeutral` | "pi-po", two short blips | "mya", a short meow | "wan", one bark |
 | `kAngry` | low, rough chirps falling | a long, low, rough meow | "grrr", a low growl |
 | `kSad` | slow falling chirps, soft | a long, falling, dark meow | "kuuun", a slow whine |
@@ -151,7 +153,7 @@ The voice of each emotion:
 | `kRelax` | two gentle slow chirps | a gentle slow meow | "fuun", a soft low sound |
 
 | emotion | bird | owl | friendly robot |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `kNeutral` | "pi", one short chirp | "hoo", one hoot | "wo", one syllable |
 | `kAngry` | a scolding chatter: four low, harsh chirps | short, low, rough "hoh! hoh!" | gruff, low "gah! gah!" |
 | `kSad` | slow falling, drooping chirps | long, sinking hoots | low, drooping syllables |
@@ -171,7 +173,7 @@ The voice of each emotion:
 ### Files
 
 | file | what it has | depends on Arduino / M5Unified |
-|---|---|---|
+| --- | --- | --- |
 | [src/SineWave.h](src/SineWave.h) | `generateSine()`, `generateSineMix()`, `harmonicSeries()`, `Partial` | no |
 | [src/VoiceSynth.h](src/VoiceSynth.h) | `VoiceNote`, `renderVoiceNote()`, `renderPhrase()`, `phraseDurationMs()` | no |
 | [src/VoicePresets.h](src/VoicePresets.h) | `presets::robot()`, `presets::catMeow()`, `presets::puppyWhine()` | no |
@@ -193,7 +195,7 @@ The files that do not depend on Arduino / M5Unified generate the samples only, s
 [examples/SineWave](examples/SineWave/SineWave.ino) has nine modes:
 
 | mode | sound |
-|---|---|
+| --- | --- |
 | single sine | a C major scale up and down, one sine wave at a time |
 | chord: 3 sines | the chords C - F - G - C, each made of 3 added sine waves |
 | harmonics: 6 sines | a C major scale, each note is a fundamental sine wave plus 5 harmonics |
@@ -229,4 +231,4 @@ g++ -std=c++17 -Wall -Isrc test/test_emotion.cpp -o test_emotion && ./test_emoti
 
 ## Notes
 
-- The speaker and the microphone share the I2S port of the CoreS3. Starting the speaker stops the microphone (and the other way around), so the loud sound detection of [stackchan-agent](../stackchan-agent) cannot run while sounds are played. This has to be solved when the voice is used in the agent.
+- The speaker and the microphone share the I2S port of the CoreS3. Starting the speaker stops the microphone (and the other way around), so the loud sound detection of [stackchan-agent](https://github.com/botamochi6277/stackchan-agent) cannot run while sounds are played. This has to be solved when the voice is used in the agent.

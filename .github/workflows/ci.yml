@@ -1,0 +1,50 @@
+# Two jobs:
+#  - test:  build and run the host-side tests (the wave generators and the voices do not need hardware)
+#  - build: build the demo (examples/SineWave) with pioarduino (Arduino-ESP32 3.x / ESP-IDF 5.x)
+#           pioarduino: https://github.com/pioarduino/platform-espressif32
+#           The environments are defined in platformio.ini.
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build and run the tests
+        run: |
+          for t in test_sine test_voice test_emotion; do
+            g++ -std=c++17 -Wall -Wextra -Isrc test/$t.cpp -o $t
+            ./$t
+          done
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [m5stack-cores3, m5stack-core2]
+
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache PlatformIO
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio
+          key: ${{ runner.os }}-pioarduino-${{ hashFiles('platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pioarduino-
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade platformio
+      - name: Build the demo with pioarduino
+        run: pio run -e ${{ matrix.env }}
