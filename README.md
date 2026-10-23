@@ -6,7 +6,7 @@ This library is for [StackChan Core](https://docs.m5stack.com/ja/core/StackChan_
 target voice: R2D2 voice, LOVOT voice, etc.
 
 > [!WARNING]
-> This library is WIP (*work in progress*). Currently it plays sine waves, sums of sine waves, and character voices (R2D2-like, cat-like, puppy-like).
+> This library is WIP (*work in progress*). Currently it plays sine waves, sums of sine waves, and character voices for each emotion (robot-like, cat-like, dog-like).
 
 ## Installment
 
@@ -70,12 +70,12 @@ voice.playSineMix(voiced, n, 500);
 ```cpp
 using namespace stackchan::voice;
 
-VoiceNote notes[presets::kMaxR2D2Notes];
-size_t n = presets::r2d2(notes, presets::kMaxR2D2Notes, /* seed */ 1);  // R2D2-like burble
+VoiceNote notes[presets::kMaxRobotNotes];
+size_t n = presets::robot(notes, presets::kMaxRobotNotes, /* seed */ 1);  // robot-like burble
 voice.playPhrase(notes, n);
 
-n = presets::catMeow(notes, presets::kMaxR2D2Notes);      // cat-like meow
-n = presets::puppyWhine(notes, presets::kMaxR2D2Notes);   // puppy-like whine
+n = presets::catMeow(notes, presets::kMaxRobotNotes);      // cat-like meow
+n = presets::puppyWhine(notes, presets::kMaxRobotNotes);   // puppy-like whine
 ```
 
 The presets only fill `VoiceNote`s. Change their fields before playing to tune the voice, or make your own notes:
@@ -88,14 +88,44 @@ The presets only fill `VoiceNote`s. Change their fields before playing to tune t
 | `harmonics` | number of sine waves, the fundamental and its harmonics (1 to 16) | 1 is a pure beep, 4 is electronic, 8 to 12 is a voice |
 | `rolloff_start`, `rolloff_end` | the k-th harmonic has the amplitude `1 / k^rolloff`. Small is bright, large is soft. It glides from start to end | bright to dark makes a "mee" to "ow" change |
 | `stretch` | moves the harmonics off the exact multiples (`k^(1+stretch)`) | 0 is a voice, 0.04 is metallic, a robot or a bell |
-| `vibrato_hz`, `vibrato_semitones` | the pitch swings around the curve | 5 to 8 Hz, under 1 semitone: a living voice. 20 to 30 Hz, 3 to 7 semitones: the R2D2 trill |
+| `vibrato_hz`, `vibrato_semitones` | the pitch swings around the curve | 5 to 8 Hz, under 1 semitone: a living voice. 20 to 30 Hz, 3 to 7 semitones: the robot trill |
 | `attack_ms`, `release_ms` | fade in and fade out | 3 ms is a hard electronic start, 30 to 150 ms is soft |
 | `amplitude` | level of the note in the phrase | accents |
 
-- The presets are made of these fields. `r2d2()` chooses 6 to 8 sounds (chirp up, chirp down, trill, blip) at random pitches between 600 and 2600 Hz with 4 slightly stretched harmonics. The same seed always gives the same phrase, on every board.
+- The presets are made of these fields. `robot()` chooses 6 to 8 sounds (chirp up, chirp down, trill, blip) at random pitches between 600 and 2600 Hz with 4 slightly stretched harmonics. The same seed always gives the same phrase, on every board.
 - Harmonics that would be above the Nyquist frequency are left out, so a high pitch with many harmonics never aliases.
 - A phrase can be at most 2 seconds (`VoicePlayer::kMaxDurationMs`). `phraseDurationMs()` tells the length.
 - `renderVoiceNote()` and `renderPhrase()` in [src/VoiceSynth.h](src/VoiceSynth.h) only generate the samples, like `generateSine()`, so they can be used on a PC.
+
+### Voices for the emotions
+
+`emotionVoice()` makes the voice of a character for an emotion. The emotions are the same as the emotional expressions of [stackchan-display](../stackchan-display) (`Expression::kNeutral` to `kRelax`), so a face and its voice can be changed together.
+
+```cpp
+using namespace stackchan::voice;
+
+VoiceNote notes[kMaxEmotionNotes];
+size_t n = emotionVoice(Character::kCat, Emotion::kSmile, notes, kMaxEmotionNotes);
+voice.playPhrase(notes, n);
+```
+
+| emotion | Robot | cat | dog |
+|---|---|---|---|
+| `kNeutral` | "pi-po", two short blips | "mya", a short meow | "wan", one bark |
+| `kAngry` | low, rough chirps falling | a long, low, rough meow | "grrr", a low growl |
+| `kSad` | slow falling chirps, soft | a long, falling, dark meow | "kuuun", a slow whine |
+| `kDoubt` | two blips and a rising chirp | "mya?", the pitch goes up at the end | "un?", the pitch goes up |
+| `kSleepy` | slow, low, falling like a yawn | a low, soft, long "myuu..." | a low, soft, long sigh |
+| `kSmile` | three happy rising chirps | a higher, cheerful meow | "wan wan", two happy barks |
+| `kGrin` | fast rising chirps and trills | two quick rising meows | "wan wan wan", three quick yips |
+| `kSurprised` | a sudden high chirp and a blip | a sharp high "nya!" | "kyan!", a short high yelp |
+| `kUpset` | fast, high, shaky trills | two shaky high meows | "kuun kuun", two shaky whines |
+| `kRelax` | two gentle slow chirps | a gentle slow meow | "fuun", a soft low sound |
+
+- The voices are made of `VoiceNote` (see above), so they can be tuned by changing the notes before playing. The notes of each voice are written one by one in [src/EmotionVoices.h](src/EmotionVoices.h).
+- The emotions are sorted by the way a voice shows them: happy and surprised voices are higher and quicker, sad and sleepy voices are lower and slower, angry voices are rough, and a question (`kDoubt`) goes up at the end.
+- The robot voice changes the pitch of the notes a little with the `seed`, so the voice is not exactly the same every time. The same seed gives the same voice.
+- `Emotion` is the library's own enum, so that this library does not depend on stackchan-display. For the 10 emotional expressions the value is the same, and `static_cast<stackchan::voice::Emotion>(expression)` converts it.
 
 ## Demo
 
@@ -106,9 +136,9 @@ The presets only fill `VoiceNote`s. Change their fields before playing to tune t
 | single sine | a C major scale up and down, one sine wave at a time |
 | chord: 3 sines | the chords C - F - G - C, each made of 3 added sine waves |
 | harmonics: 6 sines | a C major scale, each note is a fundamental sine wave plus 5 harmonics |
-| R2D2-like | a different R2D2-like burble every time |
-| cat-like | a meow |
-| puppy-like | a whine |
+| robot emotions | the robot-like voice for each of the 10 emotions, one after another |
+| cat emotions | the cat-like voice for each emotion |
+| dog emotions | the dog-like voice for each emotion |
 
 CoreS3: tap the upper half of the screen to change the volume, and the lower half to change the mode.
 Core2: the button A changes the volume, and the button B changes the mode.
@@ -130,6 +160,7 @@ The wave generators are tested on a PC, without hardware:
 ```bash
 g++ -std=c++17 -Wall -Isrc test/test_sine.cpp -o test_sine && ./test_sine
 g++ -std=c++17 -Wall -Isrc test/test_voice.cpp -o test_voice && ./test_voice
+g++ -std=c++17 -Wall -Isrc test/test_emotion.cpp -o test_emotion && ./test_emotion
 ```
 
 ## Notes

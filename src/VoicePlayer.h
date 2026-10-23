@@ -63,7 +63,7 @@ namespace stackchan::voice
         bool playSineMix(const Partial *partials, size_t count, uint32_t duration_ms, float amplitude = 0.5f);
 
         /**
-         * @brief Play notes one after another, such as a character voice made by `presets::r2d2()` or
+         * @brief Play notes one after another, such as a character voice made by `presets::robot()` or
          * `presets::catMeow()`. It does not wait for the end of the sound, and it replaces the sound being played.
          *
          * @param notes the notes. Each note is followed by its `gap_ms` of silence.

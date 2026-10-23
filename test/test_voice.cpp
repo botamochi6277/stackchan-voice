@@ -287,11 +287,11 @@ static void test_phrase() {
   CHECK(renderPhrase(small.data(), small.size(), notes, 0, kRate) == 0);
 }
 
-static void test_r2d2() {
-  VoiceNote a[presets::kMaxR2D2Notes], b[presets::kMaxR2D2Notes], c[presets::kMaxR2D2Notes];
-  size_t na = presets::r2d2(a, presets::kMaxR2D2Notes, 1);
-  size_t nb = presets::r2d2(b, presets::kMaxR2D2Notes, 1);
-  size_t nc = presets::r2d2(c, presets::kMaxR2D2Notes, 2);
+static void test_robot() {
+  VoiceNote a[presets::kMaxRobotNotes], b[presets::kMaxRobotNotes], c[presets::kMaxRobotNotes];
+  size_t na = presets::robot(a, presets::kMaxRobotNotes, 1);
+  size_t nb = presets::robot(b, presets::kMaxRobotNotes, 1);
+  size_t nc = presets::robot(c, presets::kMaxRobotNotes, 2);
   CHECK(na >= 6 && na <= 8);
 
   // the same seed gives the same phrase, another seed gives another phrase
@@ -306,8 +306,8 @@ static void test_r2d2() {
 
   // for many seeds: 6-8 notes, short enough to be played at once, in the pitch range, and no clipping
   for (uint32_t seed = 1; seed <= 200; seed++) {
-    VoiceNote notes[presets::kMaxR2D2Notes];
-    size_t n = presets::r2d2(notes, presets::kMaxR2D2Notes, seed);
+    VoiceNote notes[presets::kMaxRobotNotes];
+    size_t n = presets::robot(notes, presets::kMaxRobotNotes, seed);
     CHECK(n >= 6 && n <= 8);
     uint32_t total = phraseDurationMs(notes, n);
     CHECK(total > 300 && total <= 2000);
@@ -327,9 +327,9 @@ static void test_r2d2() {
 
   // capacity and null
   VoiceNote few[3];
-  CHECK(presets::r2d2(few, 3, 1) == 3);
-  CHECK(presets::r2d2(nullptr, 3, 1) == 0);
-  CHECK(presets::r2d2(few, 0, 1) == 0);
+  CHECK(presets::robot(few, 3, 1) == 3);
+  CHECK(presets::robot(nullptr, 3, 1) == 0);
+  CHECK(presets::robot(few, 0, 1) == 0);
 }
 
 static void test_animals() {
@@ -370,7 +370,7 @@ int main() {
   test_envelope_and_amplitude();
   test_nyquist_and_invalid();
   test_phrase();
-  test_r2d2();
+  test_robot();
   test_animals();
   if (failures == 0) printf("all tests passed\n");
   return failures == 0 ? 0 : 1;

@@ -2,9 +2,11 @@
 //   mode 0: single sine waves (C major scale)
 //   mode 1: chords, each note is a sine wave and they are added (C - F - G - C)
 //   mode 2: harmonics, a fundamental sine wave and 5 harmonics are added (C major scale)
-//   mode 3: R2D2-like voice, a different burble every time
-//   mode 4: cat-like voice, a meow
-//   mode 5: puppy-like voice, a whine
+//   mode 3: robot-like voice for each emotion (neutral, angry, sad, doubt, sleepy, smile, grin, surprised, upset, relax)
+//   mode 4: cat-like voice for each emotion
+//   mode 5: dog-like voice for each emotion
+//
+// The emotions are the same as the emotional expressions of stackchan-display.
 //
 // CoreS3: tap the upper half of the screen to change the volume, and the lower half to change the mode.
 // Core2:  button A changes the volume, and the button B changes the mode.
@@ -20,13 +22,13 @@ enum Mode
   kSingle = 0,
   kChord,
   kHarmonics,
-  kR2D2,
-  kCat,
-  kPuppy,
+  kEmotionRobot,
+  kEmotionCat,
+  kEmotionDog,
   kNumModes
 };
 const char *mode_names[] = {"single sine", "chord: 3 sines", "harmonics: 6 sines",
-                            "R2D2-like", "cat-like", "puppy-like"};
+                            "robot emotions", "cat emotions", "dog emotions"};
 
 // C4 - C5
 const float notes[] = {261.63f, 293.66f, 329.63f, 349.23f, 392.00f, 440.00f, 493.88f, 523.25f};
@@ -46,7 +48,8 @@ const int num_volumes = sizeof(volumes) / sizeof(volumes[0]);
 
 int mode = kSingle;
 int note_idx = 0;
-uint32_t phrase_count = 0; // how many R2D2 phrases were played, used as the seed
+int emotion_idx = 0; // the emotion of the next voice
+uint32_t phrase_count = 0; // how many voices were played, used as the seed of the robot voice
 int direction = 1; // 1: up, -1: down
 int volume_idx = 1;
 unsigned long next_note_ms = 0;
@@ -103,29 +106,21 @@ uint32_t playNext()
              partials[2].frequency);
     note_idx = (note_idx + 1) % num_chords;
   }
-  else if (mode == kR2D2 || mode == kCat || mode == kPuppy)
+  else if (mode == kEmotionRobot || mode == kEmotionCat || mode == kEmotionDog)
   {
-    // character voices: a phrase of notes, each with its own pitch curve, harmonics, vibrato and envelope
-    stackchan::voice::VoiceNote notes[stackchan::voice::presets::kMaxR2D2Notes];
-    size_t n = 0;
-    if (mode == kR2D2)
-    {
-      phrase_count++;
-      n = stackchan::voice::presets::r2d2(notes, stackchan::voice::presets::kMaxR2D2Notes, phrase_count);
-    }
-    else if (mode == kCat)
-    {
-      n = stackchan::voice::presets::catMeow(notes, stackchan::voice::presets::kMaxR2D2Notes);
-    }
-    else
-    {
-      n = stackchan::voice::presets::puppyWhine(notes, stackchan::voice::presets::kMaxR2D2Notes);
-    }
+    // the voice of a character for each emotion, one after another
+    using namespace stackchan::voice;
+    Character character = mode == kEmotionRobot ? Character::kRobot : (mode == kEmotionCat ? Character::kCat : Character::kDog);
+    Emotion emotion = static_cast<Emotion>(emotion_idx);
 
-    voice.playPhrase(notes, n, 0.6f);
-    uint32_t duration = stackchan::voice::phraseDurationMs(notes, n);
-    snprintf(text, sizeof(text), "%d notes, %d ms", (int)n, (int)duration);
-    wait_ms = duration + 800; // listen to the whole phrase, and a short silence
+    VoiceNote voice_notes[kMaxEmotionNotes];
+    size_t n = emotionVoice(character, emotion, voice_notes, kMaxEmotionNotes, phrase_count++);
+    voice.playPhrase(voice_notes, n, 0.6f);
+
+    uint32_t duration = phraseDurationMs(voice_notes, n);
+    snprintf(text, sizeof(text), "%s, %d ms", emotionName(emotion), (int)duration);
+    wait_ms = duration + 800; // listen to the whole voice, and a short silence
+    emotion_idx = (emotion_idx + 1) % static_cast<int>(Emotion::kCount);
   }
   else
   {
@@ -197,6 +192,7 @@ void loop()
   {
     mode = (mode + 1) % kNumModes;
     note_idx = 0;
+    emotion_idx = 0;
     direction = 1;
     next_note_ms = 0; // play right away
   }

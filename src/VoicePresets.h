@@ -39,11 +39,11 @@ namespace stackchan::voice::presets
         };
     } // namespace detail
 
-    /// longest phrase made by r2d2() [notes]
-    constexpr size_t kMaxR2D2Notes = 8;
+    /// longest phrase made by robot() [notes]
+    constexpr size_t kMaxRobotNotes = 8;
 
     /**
-     * @brief R2D2-like voice: a burble of short electronic chirps
+     * @brief Robot-like voice: a burble of short electronic chirps
      *
      * The phrase is 6 to 8 sounds of 4 kinds: a chirp going up, a chirp going down, a trill (very fast vibrato)
      * and a short blip. Their pitch is random between 600 and 2600 Hz. They have only a few harmonics, a bit
@@ -51,11 +51,11 @@ namespace stackchan::voice::presets
      * The same seed gives the same phrase. It is shorter than VoicePlayer::kMaxDurationMs.
      *
      * @param out destination of the notes
-     * @param capacity size of `out`, `kMaxR2D2Notes` is enough
+     * @param capacity size of `out`, `kMaxRobotNotes` is enough
      * @param seed a different seed gives a different phrase
      * @return number of the notes
      */
-    inline size_t r2d2(VoiceNote *out, size_t capacity, uint32_t seed = 1)
+    inline size_t robot(VoiceNote *out, size_t capacity, uint32_t seed = 1)
     {
         if (out == nullptr)
         {
