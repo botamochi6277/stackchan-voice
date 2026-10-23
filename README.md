@@ -6,7 +6,7 @@ This library is for [StackChan Core](https://docs.m5stack.com/ja/core/StackChan_
 target voice: R2D2 voice, LOVOT voice, etc.
 
 > [!WARNING]
-> This library is WIP (*work in progress*). Currently it plays sine waves, sums of sine waves, and character voices for each emotion (robot-like, cat-like, dog-like).
+> This library is WIP (*work in progress*). Currently it plays sine waves, sums of sine waves, and character voices for each emotion (robot, cat, dog, bird, owl, friendly robot).
 
 ## Installment
 
@@ -109,7 +109,20 @@ size_t n = emotionVoice(Character::kCat, Emotion::kSmile, notes, kMaxEmotionNote
 voice.playPhrase(notes, n);
 ```
 
-| emotion | Robot | cat | dog |
+The characters (`Character`):
+
+| character | the sound |
+|---|---|
+| `kRobot` | electronic chirps, trills and blips, a little metallic (high, 600 to 3000 Hz) |
+| `kCat` | meows: the pitch goes up to a peak and comes down |
+| `kDog` | barks, growls and whines |
+| `kBird` | a small bird: very high (about 2 to 3.7 kHz), almost pure sine waves, quick chirps and trills |
+| `kOwl` | hoots: low (about 250 to 700 Hz), soft and round, with a slow fade in |
+| `kFriendlyRobot` | a warm robot that almost talks: a voice-like sound in the middle range with a wobble, in slow syllables, not chirps |
+
+The voice of each emotion:
+
+| emotion | robot | cat | dog |
 |---|---|---|---|
 | `kNeutral` | "pi-po", two short blips | "mya", a short meow | "wan", one bark |
 | `kAngry` | low, rough chirps falling | a long, low, rough meow | "grrr", a low growl |
@@ -121,6 +134,19 @@ voice.playPhrase(notes, n);
 | `kSurprised` | a sudden high chirp and a blip | a sharp high "nya!" | "kyan!", a short high yelp |
 | `kUpset` | fast, high, shaky trills | two shaky high meows | "kuun kuun", two shaky whines |
 | `kRelax` | two gentle slow chirps | a gentle slow meow | "fuun", a soft low sound |
+
+| emotion | bird | owl | friendly robot |
+|---|---|---|---|
+| `kNeutral` | "pi", one short chirp | "hoo", one hoot | "wo", one syllable |
+| `kAngry` | a scolding chatter: four low, harsh chirps | short, low, rough "hoh! hoh!" | gruff, low "gah! gah!" |
+| `kSad` | slow falling, drooping chirps | long, sinking hoots | low, drooping syllables |
+| `kDoubt` | a blip, then a chirp going up | "hoo? hoo?", the second goes up | "uh-huh?", the second goes up |
+| `kSleepy` | slow, low and soft, fading away | one very low, slow hoot | powering down: low, slow, falling |
+| `kSmile` | a cheerful song of four rising chirps | "ho-hoo", two higher hoots | "wa-ow", two rising syllables |
+| `kGrin` | a lively song with a trill | "ho-ho-hoo", three hoots | a giggle of three syllables |
+| `kSurprised` | a sudden high chirp | a sharp "hoh!" | a quick "wow!" going up |
+| `kUpset` | a frantic chatter of trills | restless, trembling hoots | a worried stutter |
+| `kRelax` | a gentle two-note song | one slow, gentle hoot | one slow, soft syllable |
 
 - The voices are made of `VoiceNote` (see above), so they can be tuned by changing the notes before playing. The notes of each voice are written one by one in [src/EmotionVoices.h](src/EmotionVoices.h).
 - The emotions are sorted by the way a voice shows them: happy and surprised voices are higher and quicker, sad and sleepy voices are lower and slower, angry voices are rough, and a question (`kDoubt`) goes up at the end.
@@ -139,6 +165,9 @@ voice.playPhrase(notes, n);
 | robot emotions | the robot-like voice for each of the 10 emotions, one after another |
 | cat emotions | the cat-like voice for each emotion |
 | dog emotions | the dog-like voice for each emotion |
+| bird emotions | the bird-like voice for each emotion |
+| owl emotions | the owl-like voice for each emotion |
+| friendly robot emotions | the friendly-robot-like voice for each emotion |
 
 CoreS3: tap the upper half of the screen to change the volume, and the lower half to change the mode.
 Core2: the button A changes the volume, and the button B changes the mode.

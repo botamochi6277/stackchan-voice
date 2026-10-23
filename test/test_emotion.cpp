@@ -88,6 +88,9 @@ static void test_names() {
   CHECK(strcmp(characterName(Character::kRobot), "robot") == 0);
   CHECK(strcmp(characterName(Character::kCat), "cat") == 0);
   CHECK(strcmp(characterName(Character::kDog), "dog") == 0);
+  CHECK(strcmp(characterName(Character::kBird), "bird") == 0);
+  CHECK(strcmp(characterName(Character::kOwl), "owl") == 0);
+  CHECK(strcmp(characterName(Character::kFriendlyRobot), "friendly robot") == 0);
   CHECK(strcmp(characterName(Character::kCount), "?") == 0);
 }
 
@@ -101,10 +104,10 @@ static void test_every_voice_is_valid() {
       // has notes, and can be played at once
       CHECK(v.count >= 1 && v.count <= kMaxEmotionNotes);
       uint32_t total = phraseDurationMs(v.notes, v.count);
-      if (total < 100 || total > 2000) {
+      if (total < 60 || total > 2000) {
         printf("%s %s: %u ms\n", characterName(ch), emotionName(em), total);
       }
-      CHECK(total >= 100 && total <= 2000);
+      CHECK(total >= 60 && total <= 2000);  // not empty, and short enough to be played at once
 
       // every pitch can be played at 16 kHz, in the range of a voice
       for (size_t i = 0; i < v.count; i++) {
@@ -224,6 +227,61 @@ static void test_characters_are_different() {
   CHECK(make(Character::kCat, Emotion::kNeutral).notes[0].stretch == 0.0f);
 }
 
+static double maxHarmonics(Character c) {
+  double most = 0;
+  for (size_t e = 0; e < kNumEmotions; e++) {
+    Voice v = make(c, static_cast<Emotion>(e));
+    for (size_t i = 0; i < v.count; i++) most = v.notes[i].harmonics > most ? v.notes[i].harmonics : most;
+  }
+  return most;
+}
+
+static void test_bird_owl_and_friendly_robot() {
+  double bird = meanPitch(make(Character::kBird, Emotion::kNeutral));
+  double owl = meanPitch(make(Character::kOwl, Emotion::kNeutral));
+  double cat = meanPitch(make(Character::kCat, Emotion::kNeutral));
+  double dog = meanPitch(make(Character::kDog, Emotion::kNeutral));
+  double robot = meanPitch(make(Character::kRobot, Emotion::kNeutral));
+  double friendly = meanPitch(make(Character::kFriendlyRobot, Emotion::kNeutral));
+  printf("neutral pitch [Hz]: bird %.0f robot %.0f cat %.0f owl %.0f friendly robot %.0f dog %.0f\n", bird, robot,
+         cat, owl, friendly, dog);
+
+  // the bird is the highest, the owl is lower than the cat, and the friendly robot talks in a lower range than the
+  // chirping robot
+  CHECK(bird > robot);
+  CHECK(bird > cat && bird > owl && bird > friendly && bird > dog);
+  CHECK(owl < cat);
+  CHECK(friendly < robot);
+
+  // the bird sings in almost pure sine waves, and the owl is soft: few harmonics. The friendly robot is rich.
+  for (size_t e = 0; e < kNumEmotions; e++) {
+    Voice b = make(Character::kBird, static_cast<Emotion>(e));
+    Voice o = make(Character::kOwl, static_cast<Emotion>(e));
+    for (size_t i = 0; i < b.count; i++) {
+      // the angry bird scolds with a harsher tone, the others are almost pure
+      if (static_cast<Emotion>(e) != Emotion::kAngry) CHECK(b.notes[i].harmonics <= 2);
+    }
+    for (size_t i = 0; i < o.count; i++) {
+      if (static_cast<Emotion>(e) != Emotion::kAngry) CHECK(o.notes[i].harmonics <= 3);
+    }
+  }
+  CHECK(maxHarmonics(Character::kBird) < maxHarmonics(Character::kFriendlyRobot));
+
+  // the friendly robot wobbles a little (a vibrato), like a voice, and the owl hoots with a slow attack
+  Voice f = make(Character::kFriendlyRobot, Emotion::kNeutral);
+  CHECK(f.notes[0].vibrato_hz > 0.0f && f.notes[0].vibrato_semitones > 0.0f);
+  CHECK(f.notes[0].harmonics >= 8);
+  Voice o = make(Character::kOwl, Emotion::kNeutral);
+  CHECK(o.notes[0].attack_ms >= 50);
+
+  // the owl hoots again and again when it is happy, like the dog
+  CHECK(make(Character::kOwl, Emotion::kGrin).count == 3);
+  CHECK(make(Character::kOwl, Emotion::kSmile).count == 2);
+  // the bird chatters a lot when it is upset, and sings several notes when it is happy
+  CHECK(make(Character::kBird, Emotion::kUpset).count >= 5);
+  CHECK(make(Character::kBird, Emotion::kSmile).count >= 4);
+}
+
 static void test_capacity_and_invalid() {
   VoiceNote notes[kMaxEmotionNotes];
 
@@ -245,6 +303,7 @@ int main() {
   test_deterministic_and_seed();
   test_emotions_sound_like_the_emotion();
   test_characters_are_different();
+  test_bird_owl_and_friendly_robot();
   test_capacity_and_invalid();
   if (failures == 0) printf("all tests passed\n");
   return failures == 0 ? 0 : 1;

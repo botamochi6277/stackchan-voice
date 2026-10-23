@@ -5,6 +5,9 @@
 //   mode 3: robot-like voice for each emotion (neutral, angry, sad, doubt, sleepy, smile, grin, surprised, upset, relax)
 //   mode 4: cat-like voice for each emotion
 //   mode 5: dog-like voice for each emotion
+//   mode 6: bird-like voice for each emotion
+//   mode 7: owl-like voice for each emotion
+//   mode 8: friendly-robot-like voice for each emotion
 //
 // The emotions are the same as the emotional expressions of stackchan-display.
 //
@@ -25,10 +28,14 @@ enum Mode
   kEmotionRobot,
   kEmotionCat,
   kEmotionDog,
+  kEmotionBird,
+  kEmotionOwl,
+  kEmotionFriendlyRobot,
   kNumModes
 };
 const char *mode_names[] = {"single sine", "chord: 3 sines", "harmonics: 6 sines",
-                            "robot emotions", "cat emotions", "dog emotions"};
+                            "robot emotions", "cat emotions", "dog emotions",
+                            "bird emotions", "owl emotions", "friendly robot emotions"};
 
 // C4 - C5
 const float notes[] = {261.63f, 293.66f, 329.63f, 349.23f, 392.00f, 440.00f, 493.88f, 523.25f};
@@ -106,11 +113,12 @@ uint32_t playNext()
              partials[2].frequency);
     note_idx = (note_idx + 1) % num_chords;
   }
-  else if (mode == kEmotionRobot || mode == kEmotionCat || mode == kEmotionDog)
+  else if (mode >= kEmotionRobot)
   {
-    // the voice of a character for each emotion, one after another
+    // the voice of a character for each emotion, one after another.
+    // The modes kEmotionRobot ... are in the same order as Character.
     using namespace stackchan::voice;
-    Character character = mode == kEmotionRobot ? Character::kRobot : (mode == kEmotionCat ? Character::kCat : Character::kDog);
+    Character character = static_cast<Character>(mode - kEmotionRobot);
     Emotion emotion = static_cast<Emotion>(emotion_idx);
 
     VoiceNote voice_notes[kMaxEmotionNotes];
