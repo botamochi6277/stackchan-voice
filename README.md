@@ -7,12 +7,27 @@ target voice: R2D2 voice, LOVOT voice, etc.
 
 > [!WARNING]
 > This library is WIP (*work in progress*). Currently it plays sine waves, sums of sine waves, and character voices for each emotion (robot, cat, dog, bird, owl, friendly robot).
+> The voices are made from the characteristics of each sound and have not been tuned with a real device yet. Breaking changes are expected.
 
 ## Installment
 
 you can install with pioarduino.
 
-<!-- TODO: write instruction -->
+Add this repository and the [pioarduino](https://github.com/pioarduino/platform-espressif32) platform (Arduino-ESP32 3.x / ESP-IDF 5.x) to the `platformio.ini` of your project:
+
+```ini
+[env:m5stack-cores3]
+platform = https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip
+board = m5stack-cores3
+framework = arduino
+lib_deps =
+  m5stack/M5Unified
+  https://github.com/botamochi6277/stackchan-voice.git
+```
+
+- The only dependency is [M5Unified](https://github.com/m5stack/M5Unified). The speaker is played with `M5.Speaker`.
+- The demo is built for `m5stack-cores3` and `m5stack-core2`. The stock `espressif32` platform is not tested.
+- Include `<StackChanVoice.h>` to use everything.
 
 ## Usage
 
@@ -153,9 +168,29 @@ The voice of each emotion:
 - The robot voice changes the pitch of the notes a little with the `seed`, so the voice is not exactly the same every time. The same seed gives the same voice.
 - `Emotion` is the library's own enum, so that this library does not depend on stackchan-display. For the 10 emotional expressions the value is the same, and `static_cast<stackchan::voice::Emotion>(expression)` converts it.
 
+### Files
+
+| file | what it has | depends on Arduino / M5Unified |
+|---|---|---|
+| [src/SineWave.h](src/SineWave.h) | `generateSine()`, `generateSineMix()`, `harmonicSeries()`, `Partial` | no |
+| [src/VoiceSynth.h](src/VoiceSynth.h) | `VoiceNote`, `renderVoiceNote()`, `renderPhrase()`, `phraseDurationMs()` | no |
+| [src/VoicePresets.h](src/VoicePresets.h) | `presets::robot()`, `presets::catMeow()`, `presets::puppyWhine()` | no |
+| [src/EmotionVoices.h](src/EmotionVoices.h) | `Emotion`, `Character`, `emotionVoice()`, `emotionName()`, `characterName()` | no |
+| [src/VoicePlayer.h](src/VoicePlayer.h) | `VoicePlayer`, which plays the sounds with `M5.Speaker` | yes |
+| [src/StackChanVoice.h](src/StackChanVoice.h) | includes all of the above | yes |
+
+The files that do not depend on Arduino / M5Unified generate the samples only, so they are tested on a PC (see Development).
+
+### Limits
+
+- One sound is at most 2 seconds (`VoicePlayer::kMaxDurationMs`), and a phrase made of notes is also at most 2 seconds. `playSine()`, `playSineMix()` and `playPhrase()` return false for a longer sound.
+- At most 16 sine waves are added at once (`kMaxPartials`), and an emotion voice has at most 8 notes (`kMaxEmotionNotes`).
+- The sounds are made at 16 kHz by default, so the highest frequency is 8 kHz (the Nyquist frequency). A higher sampling rate can be given to the constructor, `VoicePlayer voice(22050);`, but it is not tested on a device. The sine waves above the Nyquist frequency are left out.
+- The sound is generated when it is played, and the samples are kept in memory while they are played. A 2 second sound at 16 kHz is 64 KB, and two buffers are used.
+
 ## Demo
 
-[examples/SineWave](examples/SineWave/SineWave.ino) has three modes:
+[examples/SineWave](examples/SineWave/SineWave.ino) has nine modes:
 
 | mode | sound |
 |---|---|
