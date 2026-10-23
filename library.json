@@ -1,0 +1,27 @@
+{
+  "name": "StackChan Voice",
+  "keywords": "voice, sound, speaker, tweet, M5Stack, StackChan",
+  "description": "An M5Stack library to make StackChan tweet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/botamochi6277/stackchan-voice.git"
+  },
+  "authors": [
+    {
+      "name": "botamochi",
+      "email": "botamochi6277+github@gmail.com",
+      "url": "https://botamochi6277.github.io/",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "M5Unified",
+      "version": ">=0.2.14"
+    }
+  ],
+  "version": "0.1.0",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}
