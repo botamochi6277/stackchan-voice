@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "SineWave.h"
+#include "VoiceSynth.h"
 
 namespace stackchan::voice
 {
@@ -46,6 +47,32 @@ namespace stackchan::voice
          */
         bool playSine(float frequency, uint32_t duration_ms, float amplitude = 0.5f);
 
+        /**
+         * @brief Play the sum of sine waves of several frequencies, like a chord or a voice with harmonics.
+         * It does not wait for the end of the sound, and it replaces the sound being played.
+         *
+         * The waves are added by generateSineMix(): only the ratio between the partial amplitudes matters,
+         * and the sum is normalized, so it does not clip however many partials are added.
+         *
+         * @param partials the sine waves to add. Partials with an invalid frequency are skipped.
+         * @param count number of the partials, at most `kMaxPartials`
+         * @param duration_ms duration [msec], at most `kMaxDurationMs`
+         * @param amplitude 0.0 to 1.0 of the whole sound
+         * @return false if the speaker is not available, the arguments are invalid or no partial can be played
+         */
+        bool playSineMix(const Partial *partials, size_t count, uint32_t duration_ms, float amplitude = 0.5f);
+
+        /**
+         * @brief Play notes one after another, such as a character voice made by `presets::r2d2()` or
+         * `presets::catMeow()`. It does not wait for the end of the sound, and it replaces the sound being played.
+         *
+         * @param notes the notes. Each note is followed by its `gap_ms` of silence.
+         * @param count number of the notes
+         * @param amplitude 0.0 to 1.0 of the whole phrase
+         * @return false if the speaker is not available, there is no note, or the phrase is longer than `kMaxDurationMs`
+         */
+        bool playPhrase(const VoiceNote *notes, size_t count, float amplitude = 0.5f);
+
         /// @return true while a sound is being played
         bool isPlaying() const;
 
@@ -66,5 +93,9 @@ namespace stackchan::voice
         // Two buffers are used alternately so that a new sound does not overwrite the sound being stopped.
         std::vector<int16_t> buffers_[2];
         uint8_t next_buffer_ = 0;
+
+        // generate the samples with `generate`, and play them
+        template <typename Generator>
+        bool playGenerated(uint32_t duration_ms, Generator generate);
     };
 } // namespace stackchan::voice
